@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!dist", "!coverage", "!src/generated"]
+    "includes": [
+      "**",
+      "!dist",
+      "!coverage",
+      "!src/generated",
+      "!.release-please-manifest.json"
+    ]
   },
   "formatter": {
     "enabled": true,
