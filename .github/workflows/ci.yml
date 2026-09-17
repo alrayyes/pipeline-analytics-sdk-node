@@ -26,15 +26,36 @@ jobs:
         run: bun run typecheck
       - name: test
         run: bun run test:ci
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-reports
+          path: |
+            coverage/lcov.info
+            junit.xml
+          retention-days: 1
+
+  # Separate from `test` (and deliberately not in branch protection's
+  # required checks) so a missing CODECOV_TOKEN -- expected until Ryan
+  # sets one, per README/CONTRIBUTING -- can't block every future merge,
+  # release-please's own PR included. `fail_ci_if_error: true` still
+  # surfaces a real upload problem loudly once the token exists; it just
+  # doesn't gate anything while it's known-pending.
+  coverage:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-reports
       - name: Upload coverage to Codecov
-        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
           fail_ci_if_error: true
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
