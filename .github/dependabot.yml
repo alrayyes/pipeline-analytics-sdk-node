@@ -15,6 +15,13 @@ updates:
         update-types: [minor, patch]
       npm-major:
         update-types: [major]
+    ignore:
+      # typescript 7's rewritten compiler API breaks openapi-typescript
+      # outright (TypeError inside its own ts.mjs, not just a type-check
+      # complaint) -- see PR #3's comment. Remove once openapi-typescript
+      # ships TS 7 support, not before.
+      - dependency-name: "typescript"
+        versions: ["7.x"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
