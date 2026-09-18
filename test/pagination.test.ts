@@ -20,9 +20,11 @@ describe("listRepos", () => {
       { repos: [repo("2")], hasMore: false },
     ];
     let call = 0;
+    const urls: string[] = [];
 
     const client = createPipelineAnalyticsClient("https://example.test", {
-      fetch: async () => {
+      fetch: async (request) => {
+        urls.push(request.url);
         const page = pages[call];
         call++;
 
@@ -40,6 +42,60 @@ describe("listRepos", () => {
 
     expect(ids).toEqual(["1", "2"]);
     expect(call).toBe(2);
+    // Second page's offset must advance by exactly the first page's repo
+    // count, not regress.
+    expect(urls[0]).toContain("offset=0");
+    expect(urls[1]).toContain("offset=1");
+  });
+
+  test("forwards every query field to each page's request", async () => {
+    let call = 0;
+    const urls: string[] = [];
+
+    const client = createPipelineAnalyticsClient("https://example.test", {
+      fetch: async (request) => {
+        urls.push(request.url);
+        call++;
+
+        return new Response(
+          JSON.stringify({ repos: [repo(String(call))], hasMore: call < 2 }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      },
+    });
+
+    const ids: string[] = [];
+    for await (const r of listRepos(client, { forge: "github", limit: 5 })) {
+      ids.push(r.id);
+    }
+
+    expect(ids).toEqual(["1", "2"]);
+    // Both pages -- not just the first -- must still carry the caller's
+    // query fields alongside the paginator's own offset.
+    for (const url of urls) {
+      expect(url).toContain("forge=github");
+      expect(url).toContain("limit=5");
+    }
+  });
+
+  test("throws a plain error on a successful response with no body", async () => {
+    const client = createPipelineAnalyticsClient("https://example.test", {
+      fetch: async () =>
+        new Response("null", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    });
+
+    const drain = async () => {
+      for await (const _r of listRepos(client)) {
+        // draining the iterator is enough to trigger the error
+      }
+    };
+
+    await expect(drain()).rejects.toThrow(
+      "pipeline-analytics: list repos: empty response body",
+    );
   });
 
   test("stops after one page when hasMore is false", async () => {

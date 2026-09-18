@@ -14,10 +14,23 @@ describe("decodeError", () => {
     });
 
     expect(apiErr).toBeInstanceOf(ApiError);
+    expect(apiErr?.name).toBe("ApiError");
     expect(apiErr?.statusCode).toBe(404);
     expect(apiErr?.code).toBe("not_found");
     expect(apiErr?.apiMessage).toBe("no such repo");
     expect(apiErr?.requestId).toBe("req-123");
+  });
+
+  test("treats a non-object, non-null body as unparseable rather than crashing", () => {
+    const response = new Response(null, { status: 400 });
+
+    // `undefined` (no body) is neither an object nor null -- the guard
+    // has to reject it too, not just plain primitives, or a body-less
+    // error response throws instead of producing a typed ApiError.
+    const apiErr = decodeError(response, undefined);
+
+    expect(apiErr?.code).toBe("unknown");
+    expect(apiErr?.apiMessage).toBe("");
   });
 
   test("null on a successful status", () => {
