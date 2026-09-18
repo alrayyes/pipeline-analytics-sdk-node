@@ -25,6 +25,28 @@ bun add pipeline-analytics-sdk-node
 # or: npm install pipeline-analytics-sdk-node
 ```
 
+### Alternative registry: GitHub Packages
+
+Every release also publishes to GitHub Packages under
+`@alrayyes/pipeline-analytics-sdk-node` — the same code, a different name,
+because GitHub Packages' npm registry requires a package scoped to its
+owner. Worth it if you're already authenticated to GitHub (CI in another of
+your own repos, say) and would rather not hold a separate npmjs.com
+credential just to install this one package.
+
+Add a `.npmrc` pointing that scope at GitHub Packages:
+
+```
+@alrayyes:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+then install the scoped name instead:
+
+```sh
+npm install @alrayyes/pipeline-analytics-sdk-node
+```
+
 ## Authentication
 
 pipeline-analytics authenticates browsers with
