@@ -52,6 +52,19 @@ describe("session cookie source", () => {
   });
 });
 
+test("falls back to no cookie when process is unavailable (browser bundle)", () => {
+  const originalProcess = globalThis.process;
+  // @ts-expect-error -- simulating a bundle target with no `process` global
+  delete globalThis.process;
+  try {
+    expect(() =>
+      createPipelineAnalyticsClient("https://example.test", {}),
+    ).not.toThrow();
+  } finally {
+    globalThis.process = originalProcess;
+  }
+});
+
 function createClientWithFakeTransport(options: { sessionCookie?: string }) {
   let capturedCookie: string | null = null;
 

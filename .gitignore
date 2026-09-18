@@ -2,3 +2,5 @@
 /dist/
 /coverage/
 /junit.xml
+/reports/
+/.stryker-tmp/
