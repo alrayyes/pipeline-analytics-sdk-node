@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.0.1...v1.1.0) (2026-09-18)
+
+
+### Features
+
+* **release:** publish to GitHub Packages alongside npm ([1fcfdb4](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/1fcfdb465378fe9cd9c7cdb492472e475bda5646))
+* **release:** publish to GitHub Packages alongside npm ([bf44440](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/bf44440f76243870d3eb030c906fe9f7497fe0e6)), closes [#15](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/15)
+
 ## [1.0.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.0.0...v1.0.1) (2026-09-18)
 
 
