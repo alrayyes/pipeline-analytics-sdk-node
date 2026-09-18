@@ -2,6 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
+    // TypeScript 6 stopped inferring rootDir from `include` -- see
+    // TS5011 ("the common source directory ... rootDir must be
+    // explicitly set") -- so this now has to be spelled out to keep
+    // dist/'s layout matching src/'s.
+    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
