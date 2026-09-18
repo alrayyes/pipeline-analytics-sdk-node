@@ -10,6 +10,15 @@ import {
 // (rules/sdk-generation.md's "Testing against the spec, not a hand-written
 // stub").
 
+test("session cookie env var name is the documented, stable one", () => {
+  // Every test below reads/writes process.env through this same exported
+  // symbol, so they'd stay internally consistent even if its value
+  // changed -- this is the one place that actually pins the literal,
+  // since README/CONTRIBUTING and any caller's own shell config
+  // hardcode this exact name.
+  expect(SESSION_COOKIE_ENV_VAR).toBe("PIPELINE_ANALYTICS_SESSION");
+});
+
 describe("session cookie source", () => {
   const originalEnv = process.env[SESSION_COOKIE_ENV_VAR];
 
