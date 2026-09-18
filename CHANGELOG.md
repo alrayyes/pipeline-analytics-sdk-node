@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.0.0...v1.0.1) (2026-09-18)
+
+
+### Bug Fixes
+
+* bump typescript from 5.9.3 to 6.0.3 in the npm-major group ([#9](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/9)) ([e8d775b](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/e8d775b5b04ba8d5be9e52aac3d6d4e685423c16))
+
 ## 1.0.0 (2026-09-17)
 
 
