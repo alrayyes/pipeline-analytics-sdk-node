@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v2.0.0...v2.0.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **ci:** add a 7-day cooldown to both Dependabot ecosystems ([#24](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/24)) ([c7fb73c](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/c7fb73ca17fa1812b9bec1e9afa1dbdbe9b6067b))
+
 ## [2.0.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.1.0...v2.0.0) (2026-09-19)
 
 
