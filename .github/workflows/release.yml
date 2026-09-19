@@ -61,9 +61,9 @@ jobs:
       # git.higherlearning.eu's") -- for a consumer already authenticated
       # to GitHub who'd rather not hold a separate npmjs.com credential.
       # GitHub Packages' npm registry requires the package name scoped to
-      # the repo owner, unlike the unscoped public copy, so this is a
-      # dual-name publish: rewrite the name for this one step only, never
-      # committed.
+      # the repo owner, not the pipeline-analytics npm org the public copy
+      # is scoped to, so this is a dual-scope publish: rewrite the name for
+      # this one step only, never committed.
       - name: Scope package name for GitHub Packages
         run: npm pkg set name=@alrayyes/pipeline-analytics-sdk-node
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
