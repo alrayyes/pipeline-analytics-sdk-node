@@ -4,6 +4,7 @@
 [![npm](https://img.shields.io/npm/v/%40pipeline-analytics%2Fsdk-node)](https://www.npmjs.com/package/@pipeline-analytics/sdk-node)
 [![Codecov](https://codecov.io/gh/alrayyes/pipeline-analytics-sdk-node/graph/badge.svg)](https://codecov.io/gh/alrayyes/pipeline-analytics-sdk-node)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![docs](https://img.shields.io/badge/docs-typedoc-blue)](https://alrayyes.github.io/pipeline-analytics-sdk-node/)
 
 A Node/TypeScript client for [pipeline-analytics](https://github.com/alrayyes/pipeline-analytics)'s
 REST API, generated from its OpenAPI spec with
