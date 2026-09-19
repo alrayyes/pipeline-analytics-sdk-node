@@ -1,7 +1,7 @@
 # pipeline-analytics-sdk-node
 
 [![CI](https://github.com/alrayyes/pipeline-analytics-sdk-node/actions/workflows/ci.yml/badge.svg)](https://github.com/alrayyes/pipeline-analytics-sdk-node/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/pipeline-analytics-sdk-node)](https://www.npmjs.com/package/pipeline-analytics-sdk-node)
+[![npm](https://img.shields.io/npm/v/%40pipeline-analytics%2Fsdk-node)](https://www.npmjs.com/package/@pipeline-analytics/sdk-node)
 [![Codecov](https://codecov.io/gh/alrayyes/pipeline-analytics-sdk-node/graph/badge.svg)](https://codecov.io/gh/alrayyes/pipeline-analytics-sdk-node)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -21,18 +21,19 @@ hand-rolling HTTP requests, retries and pagination against the API yourself.
 ## Installation
 
 ```sh
-bun add pipeline-analytics-sdk-node
-# or: npm install pipeline-analytics-sdk-node
+bun add @pipeline-analytics/sdk-node
+# or: npm install @pipeline-analytics/sdk-node
 ```
 
 ### Alternative registry: GitHub Packages
 
 Every release also publishes to GitHub Packages under
-`@alrayyes/pipeline-analytics-sdk-node` — the same code, a different name,
-because GitHub Packages' npm registry requires a package scoped to its
-owner. Worth it if you're already authenticated to GitHub (CI in another of
-your own repos, say) and would rather not hold a separate npmjs.com
-credential just to install this one package.
+`@alrayyes/pipeline-analytics-sdk-node` — the same code, a different scope,
+because GitHub Packages' npm registry requires a package scoped to the
+repo owner rather than the `pipeline-analytics` npm org. Worth it if
+you're already authenticated to GitHub (CI in another of your own repos,
+say) and would rather not hold a separate npmjs.com credential just to
+install this one package.
 
 Add a `.npmrc` pointing that scope at GitHub Packages:
 
@@ -60,7 +61,7 @@ copying the `session` cookie's value. Pass it to
 environment:
 
 ```ts
-import { createPipelineAnalyticsClient } from "pipeline-analytics-sdk-node";
+import { createPipelineAnalyticsClient } from "@pipeline-analytics/sdk-node";
 
 const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com", {
   sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
@@ -79,7 +80,7 @@ operation is `client.GET(path, ...)` / `client.POST(path, ...)`, returning
 `{ data, error, response }`:
 
 ```ts
-import { createPipelineAnalyticsClient } from "pipeline-analytics-sdk-node";
+import { createPipelineAnalyticsClient } from "@pipeline-analytics/sdk-node";
 
 const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com");
 
@@ -91,7 +92,7 @@ Listing tracked repos needs a session, and demonstrates the pagination
 iterator and typed error handling:
 
 ```ts
-import { ApiError, createPipelineAnalyticsClient, listRepos } from "pipeline-analytics-sdk-node";
+import { ApiError, createPipelineAnalyticsClient, listRepos } from "@pipeline-analytics/sdk-node";
 
 const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com", {
   sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
@@ -110,11 +111,11 @@ try {
 ```
 
 Every other operation follows the same `client.GET`/`client.POST`/... pattern.
-Use `decodeError` to turn a failed response into a `pipeline-analytics-sdk-node`
+Use `decodeError` to turn a failed response into a `@pipeline-analytics/sdk-node`
 `ApiError` uniformly:
 
 ```ts
-import { decodeError } from "pipeline-analytics-sdk-node";
+import { decodeError } from "@pipeline-analytics/sdk-node";
 
 const { data, error, response } = await client.GET("/api/repos/{repoId}/usage", {
   params: { path: { repoId } },

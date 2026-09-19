@@ -1,5 +1,5 @@
 {
-  "name": "pipeline-analytics-sdk-node",
+  "name": "@pipeline-analytics/sdk-node",
   "version": "1.1.0",
   "description": "Node/TypeScript client for pipeline-analytics's REST API, generated from its OpenAPI spec.",
   "homepage": "https://github.com/alrayyes/pipeline-analytics-sdk-node",
