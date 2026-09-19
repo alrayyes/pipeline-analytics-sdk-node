@@ -4,6 +4,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     # A bumped dependency ships in the published package, so it earns a
     # `fix:` release the same as any other bug fix (rules/releases.md's
     # "Dependency bots" section) -- github-actions below stays `ci:`
@@ -26,6 +28,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: ci
     groups:
