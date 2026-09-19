@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v2.1.0...v2.1.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **publish:** default the scoped package to public access ([#26](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/26)) ([5515ae2](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/5515ae296770d898f88bf9640a705acb8db6eef3))
+
 ## [2.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v2.0.1...v2.1.0) (2026-09-19)
 
 
