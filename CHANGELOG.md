@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v2.0.1...v2.1.0) (2026-09-19)
+
+
+### Features
+
+* generate and publish API reference docs with TypeDoc ([187cf35](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/187cf3554e571bdeb16fc90fa7847abe5a7f10d9))
+* generate and publish API reference docs with TypeDoc ([f1617e6](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/f1617e68d5fa12aa72a2de34dc80ba950a9cde17)), closes [#27](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/27)
+
 ## [2.0.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v2.0.0...v2.0.1) (2026-09-19)
 
 
