@@ -1,0 +1,12 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs-site",
+  "name": "@pipeline-analytics/sdk-node",
+  "readme": "README.md",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "blockTags": ["@description"],
+  "githubPages": true,
+  "cleanOutputDir": true
+}
