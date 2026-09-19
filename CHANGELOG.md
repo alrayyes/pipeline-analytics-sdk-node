@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.1.0...v2.0.0) (2026-09-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* the package name is now @pipeline-analytics/sdk-node. Update install commands and imports from pipeline-analytics-sdk-node.
+
+### Features
+
+* **test:** wire up Stryker mutation testing at 100% threshold ([#17](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/17)) ([82e173c](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/82e173cfc551237aa5633dc59357284267653cde))
+
+
+### Miscellaneous Chores
+
+* move npm package into the pipeline-analytics org ([59e2232](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/59e2232a50021c077c70deb74a374dd2c21e69e6)), closes [#20](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/20)
+
 ## [1.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v1.0.1...v1.1.0) (2026-09-18)
 
 
