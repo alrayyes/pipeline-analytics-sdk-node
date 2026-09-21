@@ -45,6 +45,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/repos/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every tracked identifier for a forge, unpaginated
+         * @description Backs Discover's "already tracked" check, which needs to see every tracked repo regardless of how many are tracked, not just whatever page a paginated GET /api/repos happens to be showing (see forge-ingestion/spec.md's "Repo tracking registration").
+         */
+        get: operations["listRepoIdentifiers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/repos/discover": {
         parameters: {
             query?: never;
@@ -109,7 +129,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Overview of every tracked pipeline and its health status */
+        /** A page of tracked pipelines and their health status */
         get: operations["listPipelines"];
         put?: never;
         post?: never;
@@ -153,6 +173,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pipelines/{pipelineId}/flaky-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every run in which one named step failed, most-recent-first
+         * @description The step-scoped drill-down from a flaky (or previously flaky) step in GET .../steps -- lets a click land on the run that actually failed instead of an aggregate link that may point at a run which has since passed. Available regardless of the pipeline's current health status, since a step's failures can age out of the live window before anyone gets a chance to look.
+         */
+        get: operations["listFlakyRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{runId}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One run's own steps and their statuses
+         * @description What a flaky run in GET .../flaky-runs drills down into -- scoped to a single run, so each step's forgeUrl points at the exact job that ran, never a different occurrence of the same step name.
+         */
+        get: operations["getRunSteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/insights/github-rate-limit": {
         parameters: {
             query?: never;
@@ -180,7 +240,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every flaky or failing step across every tracked pipeline, grouped by pipeline */
+        /** A page of pipelines with a flaky or failing step, grouped by pipeline */
         get: operations["listUnhealthySteps"];
         put?: never;
         post?: never;
@@ -188,6 +248,30 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The dashboard account's persisted UI settings
+         * @description Every setting is always present in the response, each one either an explicitly-stored value or its documented default -- never null or missing.
+         */
+        get: operations["getSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update one or more settings
+         * @description A key present with a value sets it. A key present with JSON null clears it, reverting to its documented default on the next read -- this is also how the Pipelines page's "Reset filters" works: a single PATCH setting pipelinesHealthFilter/pipelinesRepoSelector/pipelinesSortOrder to null. A key absent from the body is left untouched. An invalid key or an enum value outside its documented set rejects the whole request; nothing already stored changes.
+         */
+        patch: operations["updateSettings"];
         trace?: never;
     };
     "/api/auth/register/options": {
@@ -275,6 +359,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a new API token
+         * @description Session-only -- an API token can't be used to issue another one. The raw token value is returned once, here, and is never recoverable afterward.
+         */
+        post: operations["issueApiToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/tokens/{tokenId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an API token
+         * @description Session-only, same reasoning as issuing one.
+         */
+        delete: operations["revokeApiToken"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/credentials/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin an authenticated "add another passkey" ceremony
+         * @description Session-only -- an API token can't enroll another credential on the account any more than it can mint another token. Distinct from POST /api/auth/register/options: that ceremony is the anonymous first-run registration and only ever runs once per account; this one runs from within an existing session and excludes credentials already registered to it.
+         */
+        post: operations["addCredentialOptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the account's registered credentials
+         * @description Session-only, same reasoning as addCredentialOptions.
+         */
+        get: operations["listCredentials"];
+        put?: never;
+        /**
+         * Complete the "add another passkey" ceremony
+         * @description Session-only, same reasoning as addCredentialOptions.
+         */
+        post: operations["addCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/credentials/{credentialId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke a credential
+         * @description Session-only, same reasoning as addCredentialOptions. Rejected with 409 if credentialId is the account's last remaining credential -- revoking it would leave the account with no way to log in.
+         */
+        delete: operations["revokeCredential"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhooks/github": {
         parameters: {
             query?: never;
@@ -320,6 +508,48 @@ export interface components {
         Version: {
             /** @description The build's tagged version (e.g. "v1.2.3"), or "dev" for an untagged local build. */
             version: string;
+        };
+        Settings: {
+            /** @enum {string} */
+            theme: "light" | "dark" | "system";
+            /** @enum {string} */
+            forgeFilter: "all" | "github" | "forgejo";
+            /** @enum {string} */
+            pipelinesHealthFilter: "all" | "healthy" | "unhealthy";
+            /** @description A tracked repo's id, or "all" for every repo -- not validated against an enum, since the set of valid values changes with what's currently tracked. */
+            pipelinesRepoSelector: string;
+            /** @enum {string} */
+            pipelinesSortOrder: "name" | "lastRun";
+        };
+        /** @description Every property is optional; an absent one is left untouched. A property set to null clears it back to its documented default instead of setting it. */
+        SettingsUpdate: {
+            /** @enum {string|null} */
+            theme?: "light" | "dark" | "system" | null;
+            /** @enum {string|null} */
+            forgeFilter?: "all" | "github" | "forgejo" | null;
+            /** @enum {string|null} */
+            pipelinesHealthFilter?: "all" | "healthy" | "unhealthy" | null;
+            pipelinesRepoSelector?: string | null;
+            /** @enum {string|null} */
+            pipelinesSortOrder?: "name" | "lastRun" | null;
+        };
+        ApiToken: {
+            /** @description Identifies the token for revocation (DELETE /api/auth/tokens/{tokenId}) -- not itself a usable credential. */
+            id: string;
+            /** @description The raw token value. Returned only here, at creation; store it now, it can't be retrieved again. */
+            token: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        Credential: {
+            /** @description The credential's id, base64url-encoded -- identifies it for revocation (DELETE /api/auth/credentials/{credentialId}), not a usable credential itself. */
+            id: string;
+            /** @description A caller-supplied name (e.g. "MacBook", "iPhone"), set once at enrollment. Empty for a credential added before this existed, or for the account's original anonymous-registration credential. */
+            label: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         /** @enum {string} */
         Forge: "github" | "forgejo";
@@ -376,6 +606,11 @@ export interface components {
              */
             lastRunAt?: string;
         };
+        PipelineList: {
+            pipelines: components["schemas"]["PipelineSummary"][];
+            /** @description True when pipelines beyond this page match the filter. Always false when limit was omitted. */
+            hasMore: boolean;
+        };
         Trend: {
             timestamps: string[];
             /** @description Seconds. Present on a duration trend. */
@@ -396,10 +631,12 @@ export interface components {
             queueSeconds: number;
             execSeconds: number;
             failureRate: number;
+            /** @description Times this step failed within the window. */
+            failureCount: number;
             flaky: boolean;
             /**
              * Format: uri
-             * @description Deep link to this step's log on the originating forge.
+             * @description Deep link to one occurrence's log on the originating forge -- not necessarily one where the step failed. GET .../flaky-runs is the reliable way to reach a run the step actually failed on.
              */
             forgeUrl?: string;
         };
@@ -408,6 +645,37 @@ export interface components {
             pipelineName: string;
             repoId: string;
             steps: components["schemas"]["Step"][];
+        };
+        UnhealthyStepsList: {
+            groups: components["schemas"]["PipelineStepsGroup"][];
+            /** @description True when pipeline groups beyond this page have an unhealthy step. Always false when limit was omitted. */
+            hasMore: boolean;
+        };
+        FlakyRun: {
+            runId: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /**
+             * Format: uri
+             * @description Deep link to the job this step failed in, on this specific run.
+             */
+            forgeUrl: string;
+        };
+        RunStep: {
+            name: string;
+            status: string;
+            conclusion?: string;
+            /**
+             * Format: uri
+             * @description Deep link to this exact occurrence's job on the originating forge.
+             */
+            forgeUrl?: string;
+        };
+        RunDetail: {
+            runId: string;
+            /** Format: date-time */
+            startedAt?: string;
+            steps: components["schemas"]["RunStep"][];
         };
         UsageEntry: {
             workflow: string;
@@ -447,7 +715,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description No valid session */
+        /** @description No valid session or API token */
         Unauthorized: {
             headers: {
                 [name: string]: unknown;
@@ -474,14 +742,28 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description A resource with that identity already exists */
+        Conflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
     };
     parameters: {
         RepoId: string;
         PipelineId: string;
+        RunId: string;
+        /** @description A step's name, exactly as GET .../steps reports it. */
+        StepName: string;
         /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
         Window: string;
         /** @description Restrict the list to one forge. Omitted returns every forge. */
         RepoForgeFilter: components["schemas"]["Forge"];
+        /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+        PipelineRepoIdFilter: string;
         /** @description Max items to return. Omitted returns every matching item, unpaginated. */
         Limit: number;
         /** @description Items to skip before the returned page. */
@@ -561,6 +843,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Repo"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listRepoIdentifiers: {
+        parameters: {
+            query: {
+                forge: components["schemas"]["Forge"];
+                /** @description Restricts to one Forgejo instance. Ignored for GitHub. */
+                forgejoInstanceUrl?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every tracked identifier matching forge (+ instance, for Forgejo) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example [
+                         *       "alrayyes/pipeline-analytics"
+                         *     ]
+                         */
+                        identifiers: string[];
+                    };
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -645,20 +961,29 @@ export interface operations {
     };
     listPipelines: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+                repoId?: components["parameters"]["PipelineRepoIdFilter"];
+                /** @description Restrict the list to one forge. Omitted returns every forge. */
+                forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Max items to return. Omitted returns every matching item, unpaginated. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Items to skip before the returned page. */
+                offset?: components["parameters"]["Offset"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Pipeline overview */
+            /** @description A page of tracked pipelines, ordered by (repoId, name) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PipelineSummary"][];
+                    "application/json": components["schemas"]["PipelineList"];
                 };
             };
             401: components["responses"]["Unauthorized"];
@@ -718,6 +1043,59 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    listFlakyRuns: {
+        parameters: {
+            query: {
+                /** @description A step's name, exactly as GET .../steps reports it. */
+                step: components["parameters"]["StepName"];
+                /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
+                window?: components["parameters"]["Window"];
+            };
+            header?: never;
+            path: {
+                pipelineId: components["parameters"]["PipelineId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runs in which the named step failed, most-recent-first. Empty when the step has no failed occurrence in the window. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlakyRun"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getRunSteps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runId: components["parameters"]["RunId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The run's steps, in recorded order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     getGitHubRateLimitInsights: {
         parameters: {
             query?: never;
@@ -744,6 +1122,10 @@ export interface operations {
             query?: {
                 /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
                 window?: components["parameters"]["Window"];
+                /** @description Max items to return. Omitted returns every matching item, unpaginated. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Items to skip before the returned page. */
+                offset?: components["parameters"]["Offset"];
             };
             header?: never;
             path?: never;
@@ -751,15 +1133,62 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description One entry per pipeline with at least one flaky or failing step; a fully healthy pipeline contributes nothing. */
+            /** @description A page of pipeline groups, ordered by (repoId, pipelineName), one entry per pipeline with at least one flaky or failing step; a fully healthy pipeline contributes nothing. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PipelineStepsGroup"][];
+                    "application/json": components["schemas"]["UnhealthyStepsList"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every setting, fully resolved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Every setting, fully resolved, after applying the update */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
         };
     };
@@ -905,6 +1334,152 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
+        };
+    };
+    issueApiToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Token issued */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiToken"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    revokeApiToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Token revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addCredentialOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description WebAuthn PublicKeyCredentialCreationOptions. The Set-Cookie header carries an opaque, server-side ceremony reference (not the session itself) that the subsequent POST /api/auth/credentials call must present back to complete the ceremony it belongs to. */
+            200: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebAuthnCreationOptions"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every credential registered to the account */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Credential"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    addCredential: {
+        parameters: {
+            query?: {
+                /** @description A caller-supplied name for the new credential (e.g. "MacBook", "iPhone"), shown in the credential list. Defaults to an empty label if omitted. */
+                label?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebAuthnAttestationResponse"];
+            };
+        };
+        responses: {
+            /** @description Credential added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    revokeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The credential's id, base64url-encoded. */
+                credentialId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            /** @description credentialId is the account's last remaining credential */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     githubWebhook: {
