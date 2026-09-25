@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * MCP server (Streamable HTTP transport)
+         * @description Serves an MCP server over the Streamable HTTP transport (mcp-endpoint/spec.md), exposing the same pipeline health, trend, flaky-step, and usage data as read-only MCP tools. The request and response bodies are MCP's own JSON-RPC 2.0 envelope, not a REST payload -- this entry documents the endpoint for discoverability and auth, not for REST client generation.
+         */
+        post: operations["mcpEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/repos": {
         parameters: {
             query?: never;
@@ -795,6 +815,32 @@ export interface operations {
             };
         };
     };
+    mcpEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description An MCP JSON-RPC 2.0 response, or an event stream of them (text/event-stream) per the Streamable HTTP transport. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                    "text/event-stream": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     listRepos: {
         parameters: {
             query?: {
@@ -966,6 +1012,8 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
+                window?: components["parameters"]["Window"];
                 /** @description Max items to return. Omitted returns every matching item, unpaginated. */
                 limit?: components["parameters"]["Limit"];
                 /** @description Items to skip before the returned page. */
