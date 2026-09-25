@@ -1,6 +1,6 @@
 {
   "name": "@pipeline-analytics/sdk-node",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Node/TypeScript client for pipeline-analytics's REST API, generated from its OpenAPI spec.",
   "homepage": "https://github.com/alrayyes/pipeline-analytics-sdk-node",
   "bugs": "https://github.com/alrayyes/pipeline-analytics-sdk-node/issues",
