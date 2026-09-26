@@ -1,0 +1,27 @@
+# @pipeline-analytics/sdk-node
+
+> Node/TypeScript client for pipeline-analytics's REST API, generated from
+> its OpenAPI spec with openapi-typescript and openapi-fetch. Typed
+> `GET`/`POST` calls, retry with backoff and jitter, a pagination iterator,
+> and uniform `ApiError` decoding, so you don't hand-roll HTTP against the
+> API yourself.
+
+Every endpoint but `getVersion` and the two webhook receivers needs a
+pipeline-analytics session cookie (WebAuthn-only auth — no headless token
+flow yet). Install with `npm install @pipeline-analytics/sdk-node` (or the
+GitHub Packages mirror under `@alrayyes/pipeline-analytics-sdk-node`);
+requires Node.js 20+ or Bun 1.1+.
+
+## Docs
+
+- [API reference](https://alrayyes.github.io/pipeline-analytics-sdk-node/): TypeDoc-generated overview — the README (install, auth, usage examples) as the landing page.
+- [Module index](https://alrayyes.github.io/pipeline-analytics-sdk-node/modules.html): every exported class, interface, type, function and variable.
+- [createPipelineAnalyticsClient](https://alrayyes.github.io/pipeline-analytics-sdk-node/functions/createPipelineAnalyticsClient.html): builds the typed client from a base URL, session cookie and retry options.
+- [listRepos](https://alrayyes.github.io/pipeline-analytics-sdk-node/functions/listRepos.html): pagination iterator over tracked repos.
+- [decodeError](https://alrayyes.github.io/pipeline-analytics-sdk-node/functions/decodeError.html): turns a failed response into an `ApiError`.
+- [ApiError](https://alrayyes.github.io/pipeline-analytics-sdk-node/classes/ApiError.html): the typed error `decodeError` produces, with a `statusCode`.
+
+## Source
+
+- [GitHub repository](https://github.com/alrayyes/pipeline-analytics-sdk-node): source, issues, CONTRIBUTING.
+- [npm package](https://www.npmjs.com/package/@pipeline-analytics/sdk-node): published releases and versions.
