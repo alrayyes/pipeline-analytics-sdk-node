@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v3.1.0...v3.1.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **deps:** use bun ecosystem for dependabot, not npm ([b77a7a8](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/b77a7a8c21eba7aada55acafc33e3a7e97bc509a))
+* **deps:** use bun ecosystem for dependabot, not npm ([8342239](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/83422391695c908cd58b1eacfc972a34237941f4)), closes [#46](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/46)
+
 ## [3.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v3.0.0...v3.1.0) (2026-09-25)
 
 
