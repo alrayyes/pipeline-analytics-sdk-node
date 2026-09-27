@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.1.3](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v3.1.2...v3.1.3) (2026-09-27)
+
+
+### Bug Fixes
+
+* **hooks:** add prepare script so lefthook actually installs ([708b67a](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/708b67a0e6e4cddbbb38b2d9863c1ab290aa4676))
+* **hooks:** add prepare script so lefthook actually installs ([60dbcd1](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/60dbcd1ffdcbff7b7befed6933acea3882becadc)), closes [#53](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/53)
+* never run lefthook install in CI, pin it for local use instead ([db1cf53](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/db1cf53205b7d10104f148a8f95381b2a57bd2bf))
+
 ## [3.1.2](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v3.1.1...v3.1.2) (2026-09-27)
 
 
