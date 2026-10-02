@@ -965,6 +965,10 @@ export interface components {
         RepoForgeFilter: components["schemas"]["Forge"];
         /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
         PipelineRepoIdFilter: string;
+        /** @description Restrict the list to pipelines with this health status. Omitted returns every status. An unknown value is a 400. */
+        PipelineHealthFilter: components["schemas"]["HealthStatus"];
+        /** @description Order of the list. `name` (the default) is by repoId then name; `lastRun` is most recent run first, a pipeline with no runs last, ties by repoId then name. An unknown value is a 400. */
+        PipelineSort: "name" | "lastRun";
         /** @description Max items to return. Omitted returns every matching item, unpaginated. */
         Limit: number;
         /** @description Items to skip before the returned page. */
@@ -1244,6 +1248,10 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Restrict the list to pipelines with this health status. Omitted returns every status. An unknown value is a 400. */
+                health?: components["parameters"]["PipelineHealthFilter"];
+                /** @description Order of the list. `name` (the default) is by repoId then name; `lastRun` is most recent run first, a pipeline with no runs last, ties by repoId then name. An unknown value is a 400. */
+                sort?: components["parameters"]["PipelineSort"];
                 /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
                 window?: components["parameters"]["Window"];
                 /** @description Max items to return. Omitted returns every matching item, unpaginated. */
@@ -1257,7 +1265,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description A page of tracked pipelines, ordered by (repoId, name) */
+            /** @description A page of tracked pipelines, ordered by `sort` (by repoId then name unless stated). `health` and `sort` apply across every matching pipeline before paging, so `hasMore` is accurate. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1266,6 +1274,7 @@ export interface operations {
                     "application/json": components["schemas"]["PipelineList"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
         };
     };
