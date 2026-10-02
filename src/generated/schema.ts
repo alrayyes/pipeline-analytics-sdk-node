@@ -270,6 +270,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/insights/failures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Failure aggregates over a window -- pass rate, MTTR, failure distribution, root-cause groups
+         * @description Backs the failure overview and root-cause views. "Stage" means step: forges expose workflows, jobs and steps but no stage taxonomy, so the distribution and the groups are by failing step name. `passRateDelta` compares against the preceding window of equal length. Failure categories are heuristic (step conclusion and name), never log-derived; a failure no rule matches is `uncategorised`.
+         */
+        get: operations["getFailureInsights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A page of runs, newest first, each with its steps for a stage progression bar */
+        get: operations["listRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings": {
         parameters: {
             query?: never;
@@ -697,6 +734,83 @@ export interface components {
             startedAt?: string;
             steps: components["schemas"]["RunStep"][];
         };
+        RunSummary: {
+            id: string;
+            pipelineId: string;
+            pipelineName: string;
+            repoId: string;
+            /** @description The forge's run status, as recorded. */
+            status: string;
+            /** @description Absent until the run concludes. */
+            conclusion?: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** @description Absent while the run is still going or has no recorded end. */
+            durationSeconds?: number;
+            /** @description Absent on runs ingested before commit metadata was recorded. */
+            branch?: string;
+            /** @description Head commit SHA. Absent where the forge or an older row lacks it. */
+            sha?: string;
+            /** @description First line of the head commit message. */
+            message?: string;
+            /** @description The triggering user or bot. */
+            actor?: string;
+            /**
+             * Format: uri
+             * @description Deep link to the run on the originating forge.
+             */
+            forgeUrl?: string;
+            /** @description The run's steps in recorded order. */
+            steps: components["schemas"]["RunStep"][];
+        };
+        RunList: {
+            runs: components["schemas"]["RunSummary"][];
+            /** @description True when runs beyond this page match the filter. Always false when limit was omitted. */
+            hasMore: boolean;
+        };
+        /** @enum {string} */
+        FailureCategory: "infrastructure" | "code_tests" | "network_timeouts" | "config_secrets" | "uncategorised";
+        StageFailureCount: {
+            step: string;
+            failures: number;
+        };
+        FailingPipeline: {
+            pipelineId: string;
+            pipelineName: string;
+            repoId: string;
+            runs: number;
+            failedRuns: number;
+        };
+        FailureGroup: {
+            step: string;
+            category: components["schemas"]["FailureCategory"];
+            /** @description The most common step conclusion in the group, shown so a heuristic category can be checked. */
+            conclusion?: string;
+            occurrences: number;
+            /** @description Pipelines the step failed in, each reachable via GET .../flaky-runs. */
+            pipelines: {
+                pipelineId: string;
+                pipelineName: string;
+            }[];
+        };
+        FailureInsights: {
+            totalRuns: number;
+            failedRuns: number;
+            /** @description Fraction in [0, 1] of concluded runs that succeeded. */
+            passRate: number;
+            /** @description Percentage points versus the preceding window of equal length. Absent when that window had no runs. */
+            passRateDelta?: number;
+            /** @description Fraction in [0, 1] of distinct steps flagged flaky. */
+            flakyStepRatio: number;
+            /** @description Mean time from a pipeline's first failed run to its next successful run. Absent when nothing recovered in the window. */
+            mttrSeconds?: number;
+            /** @description Failures by failing step name, highest first. */
+            stageDistribution: components["schemas"]["StageFailureCount"][];
+            /** @description Pipelines ordered by failed runs, highest first. */
+            topFailingPipelines: components["schemas"]["FailingPipeline"][];
+            /** @description Failed steps grouped by name, highest occurrence count first. */
+            failureGroups: components["schemas"]["FailureGroup"][];
+        };
         UsageEntry: {
             workflow: string;
             runnerMinutes: number;
@@ -788,6 +902,8 @@ export interface components {
         Limit: number;
         /** @description Items to skip before the returned page. */
         Offset: number;
+        /** @description Restrict runs to one status bucket. `failed` is a concluded failure, `running` is queued or in progress, `success` is a concluded success. Omitted or `all` returns every run. */
+        RunStatusFilter: "all" | "failed" | "running" | "success";
     };
     requestBodies: never;
     headers: never;
@@ -1190,6 +1306,67 @@ export interface operations {
                     "application/json": components["schemas"]["UnhealthyStepsList"];
                 };
             };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getFailureInsights: {
+        parameters: {
+            query?: {
+                /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+                repoId?: components["parameters"]["PipelineRepoIdFilter"];
+                /** @description Restrict the list to one forge. Omitted returns every forge. */
+                forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
+                window?: components["parameters"]["Window"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Failure insights for the window */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FailureInsights"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listRuns: {
+        parameters: {
+            query?: {
+                /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+                repoId?: components["parameters"]["PipelineRepoIdFilter"];
+                /** @description Restrict the list to one forge. Omitted returns every forge. */
+                forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Restrict runs to one status bucket. `failed` is a concluded failure, `running` is queued or in progress, `success` is a concluded success. Omitted or `all` returns every run. */
+                status?: components["parameters"]["RunStatusFilter"];
+                /** @description Max items to return. Omitted returns every matching item, unpaginated. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Items to skip before the returned page. */
+                offset?: components["parameters"]["Offset"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of runs ordered by start time, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
         };
     };
