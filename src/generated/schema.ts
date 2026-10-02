@@ -765,10 +765,16 @@ export interface components {
              */
             forgeUrl: string;
         };
+        /**
+         * @description What a run's or step's forge state means, computed by the server so no client interprets status strings. `failed` covers a `failure` or `timed_out` conclusion; a conclusion wins over a stale status; `running` and `queued` are work still pending (the run list's `running` filter covers both); a state the server doesn't recognise is `unknown`, never `passed`.
+         * @enum {string}
+         */
+        Outcome: "passed" | "failed" | "running" | "queued" | "cancelled" | "skipped" | "unknown";
         RunStep: {
             name: string;
             status: string;
             conclusion?: string;
+            outcome: components["schemas"]["Outcome"];
             /**
              * Format: uri
              * @description Deep link to this exact occurrence's job on the originating forge.
@@ -790,6 +796,7 @@ export interface components {
             status: string;
             /** @description Absent until the run concludes. */
             conclusion?: string;
+            outcome: components["schemas"]["Outcome"];
             /** Format: date-time */
             startedAt?: string;
             /** @description Absent while the run is still going or has no recorded end. */
