@@ -654,6 +654,8 @@ export interface components {
             label: string;
             /** Format: date-time */
             createdAt: string;
+            /** @description False only for the account's last remaining credential, which DELETE /api/auth/credentials/{credentialId} refuses to revoke (409). A hint for clients so they don't apply the rule themselves; the server still enforces it. */
+            revocable: boolean;
         };
         /** @enum {string} */
         Forge: "github" | "forgejo";
