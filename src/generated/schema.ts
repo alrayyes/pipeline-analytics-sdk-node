@@ -796,8 +796,8 @@ export interface components {
         FailureInsights: {
             totalRuns: number;
             failedRuns: number;
-            /** @description Fraction in [0, 1] of concluded runs that succeeded. */
-            passRate: number;
+            /** @description Fraction in [0, 1] of concluded runs that succeeded. Absent when no run concluded in the window, since no data isn't 0%. */
+            passRate?: number;
             /** @description Percentage points versus the preceding window of equal length. Absent when that window had no runs. */
             passRateDelta?: number;
             /** @description Fraction in [0, 1] of distinct steps flagged flaky. */
@@ -894,6 +894,8 @@ export interface components {
         StepName: string;
         /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
         Window: string;
+        /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
+        InsightsWindow: "24h" | "7d" | "30d";
         /** @description Restrict the list to one forge. Omitted returns every forge. */
         RepoForgeFilter: components["schemas"]["Forge"];
         /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
@@ -1316,8 +1318,8 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
-                /** @description Trailing run count or duration the trend/ranking is computed over. Defaults to a server-chosen rolling window. */
-                window?: components["parameters"]["Window"];
+                /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
+                window?: components["parameters"]["InsightsWindow"];
             };
             header?: never;
             path?: never;
