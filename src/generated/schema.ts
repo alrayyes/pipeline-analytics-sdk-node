@@ -577,6 +577,11 @@ export interface components {
             pipelinesRepoSelector: string;
             /** @enum {string} */
             pipelinesSortOrder: "name" | "lastRun";
+            /**
+             * @description The trailing span the failure overview, root-cause and flaky views cover. Defaults to 7d.
+             * @enum {string}
+             */
+            telemetryWindow: "24h" | "7d" | "30d";
         };
         /** @description Every property is optional; an absent one is left untouched. A property set to null clears it back to its documented default instead of setting it. */
         SettingsUpdate: {
@@ -589,6 +594,8 @@ export interface components {
             pipelinesRepoSelector?: string | null;
             /** @enum {string|null} */
             pipelinesSortOrder?: "name" | "lastRun" | null;
+            /** @enum {string|null} */
+            telemetryWindow?: "24h" | "7d" | "30d" | null;
         };
         ApiToken: {
             /** @description Identifies the token for revocation (DELETE /api/auth/tokens/{tokenId}) -- not itself a usable credential. */
