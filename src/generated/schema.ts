@@ -820,6 +820,15 @@ export interface components {
         StageFailureCount: {
             step: string;
             failures: number;
+            /** @description Fraction in (0, 1] of all failed-step occurrences in the window; the entries' shares sum to 1. */
+            share: number;
+        };
+        CategoryCount: {
+            category: components["schemas"]["FailureCategory"];
+            /** @description Failed-step occurrences whose step falls in this category. */
+            occurrences: number;
+            /** @description Fraction in (0, 1] of all failed-step occurrences in the window; the categories' shares sum to 1. */
+            share: number;
         };
         FailingPipeline: {
             pipelineId: string;
@@ -853,6 +862,8 @@ export interface components {
             mttrSeconds?: number;
             /** @description Failures by failing step name, highest first. */
             stageDistribution: components["schemas"]["StageFailureCount"][];
+            /** @description Failed-step occurrences by failure category, heaviest first. Empty when nothing failed. */
+            categoryBreakdown: components["schemas"]["CategoryCount"][];
             /** @description Pipelines ordered by failed runs, highest first. */
             topFailingPipelines: components["schemas"]["FailingPipeline"][];
             /** @description Failed steps grouped by name, highest occurrence count first. */
