@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.1.0...v4.2.0) (2026-10-02)
+
+
+### Features
+
+* **spec:** regenerate types from pipeline-analytics openapi.yaml ([#62](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/62)) ([654a2e0](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/654a2e03c8a39d8b5a08bb5e95354055eb7082c8))
+
 ## [4.1.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.0.0...v4.1.0) (2026-10-02)
 
 
