@@ -310,6 +310,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/steps/flaky": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Flaky steps across every pipeline, ranked by flake rate, each with its recent run results
+         * @description Backs the flaky telemetry view. A step is listed when it is flagged flaky within the window. `flakeRate` is the fraction of the step's runs in the window that failed; `runCount` is how many runs that is. `recentOutcomes` is the step's result in its most recent runs (at most 40), oldest first, so a client draws the matrix without interpreting status strings. Ordered by `flakeRate` descending, then `runCount` descending, then pipeline and step name.
+         */
+        get: operations["listFlakySteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/insights/failures": {
         parameters: {
             query?: never;
@@ -857,6 +877,28 @@ export interface components {
                 pipelineId: string;
                 pipelineName: string;
             }[];
+        };
+        FlakyStepEntry: {
+            pipelineId: string;
+            pipelineName: string;
+            repoId: string;
+            name: string;
+            /** @description Fraction in (0, 1] of the step's runs in the window that failed. */
+            flakeRate: number;
+            /** @description Runs of this step in the window. */
+            runCount: number;
+            /** @description The step's result in its most recent runs, oldest first. */
+            recentOutcomes: components["schemas"]["Outcome"][];
+        };
+        FlakyStepList: {
+            /**
+             * @description The window these figures cover: the requested one, or the server's default. Clients show this rather than assuming a default.
+             * @enum {string}
+             */
+            window: "24h" | "7d" | "30d";
+            steps: components["schemas"]["FlakyStepEntry"][];
+            /** @description True when flaky steps beyond this page exist. Always false when limit was omitted. */
+            hasMore: boolean;
         };
         FailureInsights: {
             /**
@@ -1436,6 +1478,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UnhealthyStepsList"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listFlakySteps: {
+        parameters: {
+            query?: {
+                /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+                repoId?: components["parameters"]["PipelineRepoIdFilter"];
+                /** @description Restrict the list to one forge. Omitted returns every forge. */
+                forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
+                window?: components["parameters"]["InsightsWindow"];
+                /** @description Max items to return. Omitted returns every matching item, unpaginated. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Items to skip before the returned page. */
+                offset?: components["parameters"]["Offset"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of flaky steps */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlakyStepList"];
                 };
             };
             401: components["responses"]["Unauthorized"];
