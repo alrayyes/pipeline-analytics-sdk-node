@@ -859,6 +859,11 @@ export interface components {
             }[];
         };
         FailureInsights: {
+            /**
+             * @description The window these figures cover: the requested one, or the server's default when the request named none or an unknown one. Clients show this rather than assuming a default.
+             * @enum {string}
+             */
+            window: "24h" | "7d" | "30d";
             totalRuns: number;
             failedRuns: number;
             /** @description Fraction in [0, 1] of concluded runs that succeeded. Absent when no run concluded in the window, since no data isn't 0%. */
