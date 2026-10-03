@@ -33,7 +33,7 @@ export interface paths {
         };
         /**
          * Readiness -- the instance can serve, its database answers
-         * @description Public and unauthenticated, for the container's `HEALTHCHECK` and any orchestrator. Reads the database schema within a short deadline. A failure returns 503 with a generic body: the cause goes to the server log, not to an unauthenticated caller.
+         * @description Public and unauthenticated, for the container's `HEALTHCHECK` and any orchestrator. Reads the database schema within a short deadline and reuses the result for a few seconds, so polling can't hammer the database. A failure returns 503 with a generic body: the cause goes to the server log, not to an unauthenticated caller. After SIGTERM it returns 503 without checking, while the server keeps serving for its drain period, so a router takes the instance out of rotation before the listener closes.
          */
         get: operations["getReadyz"];
         put?: never;
@@ -1069,7 +1069,7 @@ export interface operations {
                     "text/plain": string;
                 };
             };
-            /** @description The database did not answer in time, or errored */
+            /** @description The database did not answer in time or errored, or the instance is shutting down */
             503: {
                 headers: {
                     [name: string]: unknown;
