@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.10.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.10.0...v4.10.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **ci:** wrap oasdiff's output in the regenerate commit's footer ([c15cd54](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/c15cd54431f2cef54af27831cb1ba6bd56efa900))
+* **ci:** wrap oasdiff's output in the regenerate commit's footer ([a93afc4](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/a93afc44e654521b068525c04696a5458a66759d))
+
 ## [4.10.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.9.0...v4.10.0) (2026-10-03)
 
 
