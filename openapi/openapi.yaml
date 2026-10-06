@@ -124,6 +124,8 @@ paths:
                 type: string
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /api/repos:
     get:
@@ -170,6 +172,90 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+
+  /api/forge-tokens:
+    get:
+      operationId: listForgeTokens
+      summary: The forge tokens saved for registering repositories
+      description: >
+        Session-only. Returns each saved token in its masked form only
+        (`****1234`); no endpoint returns the token itself. At most one token
+        is saved per forge and, for Forgejo, per instance URL.
+      tags: [repos]
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Every saved token, masked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tokens]
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SavedForgeToken"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: saveForgeToken
+      summary: Save a forge token, replacing the one for that forge and instance
+      description: >
+        Session-only. Stores the token encrypted at rest, like a repo's token.
+        Saving for a forge and instance that already has one replaces it. The
+        token isn't checked against the forge here: registering with it is
+        what finds out whether it works.
+      tags: [repos]
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveForgeTokenRequest"
+      responses:
+        "200":
+          description: Saved, masked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedForgeToken"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+
+  /api/forge-tokens/{tokenId}:
+    delete:
+      operationId: deleteForgeToken
+      summary: Delete a saved forge token
+      description: >
+        Session-only. Repos already registered with it keep their own copy and
+        keep working: a saved token is a convenience for the next
+        registration, not a link from the repos that used it.
+      tags: [repos]
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/repos/identifiers:
     get:
@@ -241,6 +327,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
         "502":
           $ref: "#/components/responses/BadGateway"
 
@@ -412,6 +500,117 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/runs/{runId}/rerun:
+    post:
+      operationId: rerunRun
+      summary: Ask the forge to re-run a concluded run
+      description: >
+        Session-only: an API token can't, and there is no MCP tool, because
+        this writes to the forge. Re-runs only the failed jobs when the run
+        failed and the whole run otherwise. The forge does the work, so `202`
+        means it accepted the request, not that the run has finished. Needs a
+        stored token with write access to Actions: GitHub answers a read-only
+        token with `403 forbidden`, and the message says which permission is
+        missing. A Forgejo run is `501 unsupported`, since Forgejo has no REST
+        endpoint for it (found by search, not checked against a live
+        instance). The token is never logged.
+      tags: [pipelines]
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "202":
+          description: The forge accepted the request
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/NotActionable"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+
+  /api/runs/{runId}/cancel:
+    post:
+      operationId: cancelRun
+      summary: Ask the forge to cancel a queued or running run
+      description: >
+        Session-only, no MCP tool, same reasons and same outcomes as the
+        re-run. A run that has already concluded is `409 not_actionable`.
+        GitHub's cancel endpoint needs the `repo` scope on a classic token; for
+        a fine-grained token this assumes Actions write, as for the re-run,
+        which the documentation search did not state for this endpoint.
+      tags: [pipelines]
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "202":
+          description: The forge accepted the request
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/NotActionable"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+
+  /api/runs/{runId}/jobs/{jobId}/log:
+    get:
+      operationId: getJobLog
+      summary: The tail of one job's log, fetched from the forge on demand
+      description: >
+        Fetches the log from the originating forge when asked and never stores
+        it, so the SQLite file doesn't grow with log volume and a log can't
+        outlive the forge's own retention. Returns the last `lines` lines (200
+        by default). ANSI escape sequences are passed through untouched: the
+        client renders and escapes them, and must never insert a line as
+        HTML. A forge with no log API (Forgejo before v16, which has none),
+        an expired log, or a token without access answers `200` with
+        `available: false` and a `reason`, so the client can say so and still
+        show `forgeUrl`. An unknown run or job is `404`. GitHub's log URL is a
+        redirect that expires after a minute, so it is followed server-side
+        and never handed to the client.
+      tags: [pipelines]
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: A `jobId` from GET /api/runs/{runId}/steps.
+        - name: lines
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 200
+      responses:
+        "200":
+          description: The log tail, or why there isn't one
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobLog"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/insights/github-rate-limit:
     get:
       operationId: getGitHubRateLimitInsights
@@ -476,6 +675,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PipelineRepoIdFilter"
         - $ref: "#/components/parameters/RepoForgeFilter"
+        - $ref: "#/components/parameters/BranchFilter"
         - $ref: "#/components/parameters/InsightsWindow"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
@@ -486,6 +686,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FlakyStepList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/branches:
+    get:
+      operationId: listBranches
+      summary: The branches that have runs in a window, busiest first
+      description: >
+        What a branch selector offers: every branch with at least one run that
+        started in the trailing window, with how many. A run with no recorded
+        branch is not a branch. Ordered by `runCount` descending, then name.
+        Pass a name as `branch` to the failure insights, the run list or the
+        flaky steps to scope them.
+      tags: [insights]
+      parameters:
+        - $ref: "#/components/parameters/PipelineRepoIdFilter"
+        - $ref: "#/components/parameters/RepoForgeFilter"
+        - $ref: "#/components/parameters/InsightsWindow"
+      responses:
+        "200":
+          description: The branches with runs in the window
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BranchList"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -505,6 +732,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PipelineRepoIdFilter"
         - $ref: "#/components/parameters/RepoForgeFilter"
+        - $ref: "#/components/parameters/BranchFilter"
         - $ref: "#/components/parameters/InsightsWindow"
       responses:
         "200":
@@ -513,6 +741,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FailureInsights"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -524,6 +754,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PipelineRepoIdFilter"
         - $ref: "#/components/parameters/RepoForgeFilter"
+        - $ref: "#/components/parameters/BranchFilter"
         - $ref: "#/components/parameters/RunStatusFilter"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
@@ -587,6 +818,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /api/auth/register/options:
     post:
@@ -643,6 +876,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /api/auth/login/options:
     post:
@@ -697,6 +932,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /api/auth/logout:
     post:
@@ -833,6 +1070,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /api/auth/credentials/{credentialId}:
     delete:
@@ -902,6 +1141,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
   /webhooks/forgejo:
     post:
@@ -937,6 +1178,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
 
 components:
   securitySchemes:
@@ -1012,6 +1255,17 @@ components:
       description: Restrict the list to one tracked repo. Omitted returns every repo's pipelines.
       schema:
         type: string
+    BranchFilter:
+      name: branch
+      in: query
+      required: false
+      description: >
+        Cover only runs on this branch, matched exactly. Omitted covers every
+        branch. A branch with no runs in range is an empty result, not an
+        error. Longer than 255 characters is a 400.
+      schema:
+        type: string
+        maxLength: 255
     PipelineHealthFilter:
       name: health
       in: query
@@ -1062,6 +1316,15 @@ components:
         default: all
 
   responses:
+    PayloadTooLarge:
+      description: >
+        The request body is larger than the limit: 64 KiB for the API and
+        the MCP endpoint, 2 MiB for the forge webhook receivers. The body is
+        not read past the limit.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
     BadRequest:
       description: The request body failed validation
       content:
@@ -1082,6 +1345,24 @@ components:
             $ref: "#/components/schemas/Error"
     BadGateway:
       description: The originating forge rejected the request or couldn't be reached
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: The stored token can't do this; the message says which permission is missing
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotActionable:
+      description: The run's state doesn't allow this (re-running one that hasn't concluded, cancelling one that has)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotImplemented:
+      description: The run's forge has no API for this
       content:
         application/json:
           schema:
@@ -1111,7 +1392,7 @@ components:
           type: string
           description: 'The build''s tagged version (e.g. "v1.2.3"), or "dev" for an untagged local build.'
 
-    Settings:
+    SettingsValues:
       type: object
       required:
         [
@@ -1134,6 +1415,7 @@ components:
           enum: [all, healthy, unhealthy]
         pipelinesRepoSelector:
           type: string
+          maxLength: 128
           description: >
             A tracked repo's id, or "all" for every repo -- not
             validated against an enum, since the set of valid values
@@ -1145,6 +1427,19 @@ components:
           type: string
           enum: ["24h", "7d", "30d"]
           description: The trailing span the failure overview, root-cause and flaky views cover. Defaults to 7d.
+
+    Settings:
+      description: >
+        Every setting in force, plus `defaults`: the server's documented
+        default for each, so a client can tell whether a value is the
+        default without keeping its own copy.
+      allOf:
+        - $ref: "#/components/schemas/SettingsValues"
+        - type: object
+          required: [defaults]
+          properties:
+            defaults:
+              $ref: "#/components/schemas/SettingsValues"
 
     SettingsUpdate:
       type: object
@@ -1164,6 +1459,7 @@ components:
           enum: [all, healthy, unhealthy, null]
         pipelinesRepoSelector:
           type: [string, "null"]
+          maxLength: 128
         pipelinesSortOrder:
           type: [string, "null"]
           enum: [name, lastRun, null]
@@ -1263,22 +1559,24 @@ components:
           type: boolean
           description: True when repos beyond this page match the filter. Always false when limit was omitted.
 
-    RepoRegistration:
+    SavedForgeToken:
       type: object
-      required: [forge, identifier, token]
+      required: [id, forge, tokenMasked]
       properties:
+        id:
+          type: string
         forge:
           $ref: "#/components/schemas/Forge"
-        identifier:
-          type: string
         forgejoInstanceUrl:
           type: string
           format: uri
-        token:
+          maxLength: 2048
+          description: Set for Forgejo, absent for GitHub.
+        tokenMasked:
           type: string
-          description: Repo-scoped personal access token. Never echoed back.
+          description: Last four characters only, e.g. "****1234". The token is never returned.
 
-    RepoDiscoveryRequest:
+    SaveForgeTokenRequest:
       type: object
       required: [forge, token]
       properties:
@@ -1287,9 +1585,50 @@ components:
         forgejoInstanceUrl:
           type: string
           format: uri
+          maxLength: 2048
         token:
           type: string
-          description: Never stored -- used for this one lookup only.
+          minLength: 1
+          maxLength: 1024
+
+    RepoRegistration:
+      type: object
+      required: [forge, identifier]
+      properties:
+        forge:
+          $ref: "#/components/schemas/Forge"
+        identifier:
+          type: string
+          maxLength: 200
+        forgejoInstanceUrl:
+          type: string
+          format: uri
+          maxLength: 2048
+        token:
+          type: string
+          maxLength: 1024
+          description: >
+            Repo-scoped personal access token. Never echoed back. Omitted uses
+            the token saved for this forge and instance; a `400` with code
+            `no_saved_token` when there is none.
+
+    RepoDiscoveryRequest:
+      type: object
+      required: [forge]
+      properties:
+        forge:
+          $ref: "#/components/schemas/Forge"
+        forgejoInstanceUrl:
+          type: string
+          format: uri
+          maxLength: 2048
+        token:
+          type: string
+          maxLength: 1024
+          description: >
+            Never stored by this call -- used for this one lookup only.
+            Omitted uses the token saved for this forge and instance; a
+            `400` with code `no_saved_token` when there is none.
 
     HealthStatus:
       type: string
@@ -1461,6 +1800,9 @@ components:
       type: object
       required: [name, status, outcome]
       properties:
+        jobId:
+          type: string
+          description: The job this step ran in; pass it to GET /api/runs/{runId}/jobs/{jobId}/log.
         name:
           type: string
         status:
@@ -1473,6 +1815,38 @@ components:
           type: string
           format: uri
           description: Deep link to this exact occurrence's job on the originating forge.
+
+    JobLog:
+      type: object
+      required: [available, forgeUrl, lines, truncated]
+      properties:
+        available:
+          type: boolean
+          description: False when the forge gave no log; see `reason`. `lines` is then empty.
+        reason:
+          type: string
+          enum: [unsupported, expired, forbidden, unreachable]
+          description: >
+            Present when `available` is false. `unsupported`: the forge has no
+            log API. `expired`: the forge no longer has this log. `forbidden`:
+            the stored token can't read it. `unreachable`: the forge didn't
+            answer.
+        lines:
+          type: array
+          maxItems: 1000
+          items:
+            type: string
+            maxLength: 4096
+          description: >
+            The last lines of the log, oldest first, each cut at 4096
+            characters. Raw text, ANSI sequences included.
+        truncated:
+          type: boolean
+          description: True when the log had more lines than were returned.
+        forgeUrl:
+          type: string
+          format: uri
+          description: Deep link to the job on the forge, always present.
 
     RunDetail:
       type: object
@@ -1490,7 +1864,8 @@ components:
 
     RunSummary:
       type: object
-      required: [id, pipelineId, pipelineName, repoId, status, outcome, steps]
+      required:
+        [id, pipelineId, pipelineName, repoId, status, outcome, actions, steps]
       properties:
         id:
           type: string
@@ -1530,6 +1905,18 @@ components:
           type: string
           format: uri
           description: Deep link to the run on the originating forge.
+        actions:
+          type: array
+          description: >
+            What a session may ask the forge to do to this run now: `rerun` for
+            a concluded GitHub run, `cancel` for a queued or running one. Empty
+            when neither applies, and always empty for a Forgejo run. The same
+            rule decides the `409 not_actionable` and `501 unsupported` answers
+            of `POST /api/runs/{runId}/rerun` and `/cancel`, which stay
+            session-only whoever reads this list.
+          items:
+            type: string
+            enum: [rerun, cancel]
         steps:
           type: array
           description: The run's steps in recorded order.
@@ -1675,6 +2062,32 @@ components:
         hasMore:
           type: boolean
           description: True when flaky steps beyond this page exist. Always false when limit was omitted.
+
+    BranchList:
+      type: object
+      required: [window, branches]
+      properties:
+        window:
+          type: string
+          enum: ["24h", "7d", "30d"]
+          description: >
+            The window these counts cover: the requested one, or the
+            server's default.
+        branches:
+          type: array
+          items:
+            $ref: "#/components/schemas/BranchEntry"
+
+    BranchEntry:
+      type: object
+      required: [name, runCount]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        runCount:
+          type: integer
+          description: Runs on this branch that started in the window.
 
     FailureInsights:
       type: object
