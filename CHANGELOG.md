@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.10.1...v5.0.0) (2026-10-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **spec:** pipeline-analytics' spec removed or narrowed something a client may depend on:
+
+### Features
+
+* **spec:** regenerate types from pipeline-analytics openapi.yaml ([#95](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/95)) ([2c7657b](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/2c7657bc17b07dcd99cad2824f4181056b83d322))
+
 ## [4.10.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.10.0...v4.10.1) (2026-10-06)
 
 
