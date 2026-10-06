@@ -105,6 +105,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/forge-tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The forge tokens saved for registering repositories
+         * @description Session-only. Returns each saved token in its masked form only (`****1234`); no endpoint returns the token itself. At most one token is saved per forge and, for Forgejo, per instance URL.
+         */
+        get: operations["listForgeTokens"];
+        /**
+         * Save a forge token, replacing the one for that forge and instance
+         * @description Session-only. Stores the token encrypted at rest, like a repo's token. Saving for a forge and instance that already has one replaces it. The token isn't checked against the forge here: registering with it is what finds out whether it works.
+         */
+        put: operations["saveForgeToken"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge-tokens/{tokenId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a saved forge token
+         * @description Session-only. Repos already registered with it keep their own copy and keep working: a saved token is a convenience for the next registration, not a link from the repos that used it.
+         */
+        delete: operations["deleteForgeToken"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/repos/identifiers": {
         parameters: {
             query?: never;
@@ -273,6 +317,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{runId}/rerun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the forge to re-run a concluded run
+         * @description Session-only: an API token can't, and there is no MCP tool, because this writes to the forge. Re-runs only the failed jobs when the run failed and the whole run otherwise. The forge does the work, so `202` means it accepted the request, not that the run has finished. Needs a stored token with write access to Actions: GitHub answers a read-only token with `403 forbidden`, and the message says which permission is missing. A Forgejo run is `501 unsupported`, since Forgejo has no REST endpoint for it (found by search, not checked against a live instance). The token is never logged.
+         */
+        post: operations["rerunRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{runId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the forge to cancel a queued or running run
+         * @description Session-only, no MCP tool, same reasons and same outcomes as the re-run. A run that has already concluded is `409 not_actionable`. GitHub's cancel endpoint needs the `repo` scope on a classic token; for a fine-grained token this assumes Actions write, as for the re-run, which the documentation search did not state for this endpoint.
+         */
+        post: operations["cancelRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{runId}/jobs/{jobId}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The tail of one job's log, fetched from the forge on demand
+         * @description Fetches the log from the originating forge when asked and never stores it, so the SQLite file doesn't grow with log volume and a log can't outlive the forge's own retention. Returns the last `lines` lines (200 by default). ANSI escape sequences are passed through untouched: the client renders and escapes them, and must never insert a line as HTML. A forge with no log API (Forgejo before v16, which has none), an expired log, or a token without access answers `200` with `available: false` and a `reason`, so the client can say so and still show `forgeUrl`. An unknown run or job is `404`. GitHub's log URL is a redirect that expires after a minute, so it is followed server-side and never handed to the client.
+         */
+        get: operations["getJobLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/insights/github-rate-limit": {
         parameters: {
             query?: never;
@@ -322,6 +426,26 @@ export interface paths {
          * @description Backs the flaky telemetry view. A step is listed when it is flagged flaky within the window. `flakeRate` is the fraction of the step's runs in the window that failed; `runCount` is how many runs that is. `recentOutcomes` is the step's result in its most recent runs (at most 40), oldest first, so a client draws the matrix without interpreting status strings. Ordered by `flakeRate` descending, then `runCount` descending, then pipeline and step name.
          */
         get: operations["listFlakySteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/branches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The branches that have runs in a window, busiest first
+         * @description What a branch selector offers: every branch with at least one run that started in the trailing window, with how many. A run with no recorded branch is not a branch. Ordered by `runCount` descending, then name. Pass a name as `branch` to the failure insights, the run list or the flaky steps to scope them.
+         */
+        get: operations["listBranches"];
         put?: never;
         post?: never;
         delete?: never;
@@ -626,7 +750,7 @@ export interface components {
             /** @description The build's tagged version (e.g. "v1.2.3"), or "dev" for an untagged local build. */
             version: string;
         };
-        Settings: {
+        SettingsValues: {
             /** @enum {string} */
             theme: "light" | "dark" | "system";
             /** @enum {string} */
@@ -642,6 +766,10 @@ export interface components {
              * @enum {string}
              */
             telemetryWindow: "24h" | "7d" | "30d";
+        };
+        /** @description Every setting in force, plus `defaults`: the server's documented default for each, so a client can tell whether a value is the default without keeping its own copy. */
+        Settings: components["schemas"]["SettingsValues"] & {
+            defaults: components["schemas"]["SettingsValues"];
         };
         /** @description Every property is optional; an absent one is left untouched. A property set to null clears it back to its documented default instead of setting it. */
         SettingsUpdate: {
@@ -702,20 +830,37 @@ export interface components {
             /** @description True when repos beyond this page match the filter. Always false when limit was omitted. */
             hasMore: boolean;
         };
+        SavedForgeToken: {
+            id: string;
+            forge: components["schemas"]["Forge"];
+            /**
+             * Format: uri
+             * @description Set for Forgejo, absent for GitHub.
+             */
+            forgejoInstanceUrl?: string;
+            /** @description Last four characters only, e.g. "****1234". The token is never returned. */
+            tokenMasked: string;
+        };
+        SaveForgeTokenRequest: {
+            forge: components["schemas"]["Forge"];
+            /** Format: uri */
+            forgejoInstanceUrl?: string;
+            token: string;
+        };
         RepoRegistration: {
             forge: components["schemas"]["Forge"];
             identifier: string;
             /** Format: uri */
             forgejoInstanceUrl?: string;
-            /** @description Repo-scoped personal access token. Never echoed back. */
-            token: string;
+            /** @description Repo-scoped personal access token. Never echoed back. Omitted uses the token saved for this forge and instance; a `400` with code `no_saved_token` when there is none. */
+            token?: string;
         };
         RepoDiscoveryRequest: {
             forge: components["schemas"]["Forge"];
             /** Format: uri */
             forgejoInstanceUrl?: string;
-            /** @description Never stored -- used for this one lookup only. */
-            token: string;
+            /** @description Never stored by this call -- used for this one lookup only. Omitted uses the token saved for this forge and instance; a `400` with code `no_saved_token` when there is none. */
+            token?: string;
         };
         /** @enum {string} */
         HealthStatus: "healthy" | "unhealthy";
@@ -793,6 +938,8 @@ export interface components {
          */
         Outcome: "passed" | "failed" | "running" | "queued" | "cancelled" | "skipped" | "unknown";
         RunStep: {
+            /** @description The job this step ran in; pass it to GET /api/runs/{runId}/jobs/{jobId}/log. */
+            jobId?: string;
             name: string;
             status: string;
             conclusion?: string;
@@ -802,6 +949,24 @@ export interface components {
              * @description Deep link to this exact occurrence's job on the originating forge.
              */
             forgeUrl?: string;
+        };
+        JobLog: {
+            /** @description False when the forge gave no log; see `reason`. `lines` is then empty. */
+            available: boolean;
+            /**
+             * @description Present when `available` is false. `unsupported`: the forge has no log API. `expired`: the forge no longer has this log. `forbidden`: the stored token can't read it. `unreachable`: the forge didn't answer.
+             * @enum {string}
+             */
+            reason?: "unsupported" | "expired" | "forbidden" | "unreachable";
+            /** @description The last lines of the log, oldest first, each cut at 4096 characters. Raw text, ANSI sequences included. */
+            lines: string[];
+            /** @description True when the log had more lines than were returned. */
+            truncated: boolean;
+            /**
+             * Format: uri
+             * @description Deep link to the job on the forge, always present.
+             */
+            forgeUrl: string;
         };
         RunDetail: {
             runId: string;
@@ -836,6 +1001,8 @@ export interface components {
              * @description Deep link to the run on the originating forge.
              */
             forgeUrl?: string;
+            /** @description What a session may ask the forge to do to this run now: `rerun` for a concluded GitHub run, `cancel` for a queued or running one. Empty when neither applies, and always empty for a Forgejo run. The same rule decides the `409 not_actionable` and `501 unsupported` answers of `POST /api/runs/{runId}/rerun` and `/cancel`, which stay session-only whoever reads this list. */
+            actions: ("rerun" | "cancel")[];
             /** @description The run's steps in recorded order. */
             steps: components["schemas"]["RunStep"][];
         };
@@ -900,6 +1067,19 @@ export interface components {
             /** @description True when flaky steps beyond this page exist. Always false when limit was omitted. */
             hasMore: boolean;
         };
+        BranchList: {
+            /**
+             * @description The window these counts cover: the requested one, or the server's default.
+             * @enum {string}
+             */
+            window: "24h" | "7d" | "30d";
+            branches: components["schemas"]["BranchEntry"][];
+        };
+        BranchEntry: {
+            name: string;
+            /** @description Runs on this branch that started in the window. */
+            runCount: number;
+        };
         FailureInsights: {
             /**
              * @description The window these figures cover: the requested one, or the server's default when the request named none or an unknown one. Clients show this rather than assuming a default.
@@ -954,6 +1134,15 @@ export interface components {
         WebAuthnAssertionResponse: Record<string, never>;
     };
     responses: {
+        /** @description The request body is larger than the limit: 64 KiB for the API and the MCP endpoint, 2 MiB for the forge webhook receivers. The body is not read past the limit. */
+        PayloadTooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The request body failed validation */
         BadRequest: {
             headers: {
@@ -990,6 +1179,33 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description The stored token can't do this; the message says which permission is missing */
+        Forbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The run's state doesn't allow this (re-running one that hasn't concluded, cancelling one that has) */
+        NotActionable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The run's forge has no API for this */
+        NotImplemented: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description A resource with that identity already exists */
         Conflict: {
             headers: {
@@ -1014,6 +1230,8 @@ export interface components {
         RepoForgeFilter: components["schemas"]["Forge"];
         /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
         PipelineRepoIdFilter: string;
+        /** @description Cover only runs on this branch, matched exactly. Omitted covers every branch. A branch with no runs in range is an empty result, not an error. Longer than 255 characters is a 400. */
+        BranchFilter: string;
         /** @description Restrict the list to pipelines with this health status. Omitted returns every status. An unknown value is a 400. */
         PipelineHealthFilter: components["schemas"]["HealthStatus"];
         /** @description Order of the list. `name` (the default) is by repoId then name; `lastRun` is most recent run first, a pipeline with no runs last, ties by repoId then name. An unknown value is a 400. */
@@ -1124,6 +1342,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     listRepos: {
@@ -1179,6 +1398,79 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             409: components["responses"]["Conflict"];
+            413: components["responses"]["PayloadTooLarge"];
+        };
+    };
+    listForgeTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every saved token, masked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tokens: components["schemas"]["SavedForgeToken"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    saveForgeToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveForgeTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Saved, masked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedForgeToken"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            413: components["responses"]["PayloadTooLarge"];
+        };
+    };
+    deleteForgeToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listRepoIdentifiers: {
@@ -1238,6 +1530,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            413: components["responses"]["PayloadTooLarge"];
             502: components["responses"]["BadGateway"];
         };
     };
@@ -1434,6 +1727,86 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    rerunRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runId: components["parameters"]["RunId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The forge accepted the request */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotActionable"];
+            501: components["responses"]["NotImplemented"];
+            502: components["responses"]["BadGateway"];
+        };
+    };
+    cancelRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                runId: components["parameters"]["RunId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The forge accepted the request */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotActionable"];
+            501: components["responses"]["NotImplemented"];
+            502: components["responses"]["BadGateway"];
+        };
+    };
+    getJobLog: {
+        parameters: {
+            query?: {
+                lines?: number;
+            };
+            header?: never;
+            path: {
+                runId: components["parameters"]["RunId"];
+                /** @description A `jobId` from GET /api/runs/{runId}/steps. */
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The log tail, or why there isn't one */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobLog"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     getGitHubRateLimitInsights: {
         parameters: {
             query?: never;
@@ -1490,6 +1863,8 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Cover only runs on this branch, matched exactly. Omitted covers every branch. A branch with no runs in range is an empty result, not an error. Longer than 255 characters is a 400. */
+                branch?: components["parameters"]["BranchFilter"];
                 /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
                 window?: components["parameters"]["InsightsWindow"];
                 /** @description Max items to return. Omitted returns every matching item, unpaginated. */
@@ -1512,6 +1887,35 @@ export interface operations {
                     "application/json": components["schemas"]["FlakyStepList"];
                 };
             };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listBranches: {
+        parameters: {
+            query?: {
+                /** @description Restrict the list to one tracked repo. Omitted returns every repo's pipelines. */
+                repoId?: components["parameters"]["PipelineRepoIdFilter"];
+                /** @description Restrict the list to one forge. Omitted returns every forge. */
+                forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
+                window?: components["parameters"]["InsightsWindow"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The branches with runs in the window */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchList"];
+                };
+            };
             401: components["responses"]["Unauthorized"];
         };
     };
@@ -1522,6 +1926,8 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Cover only runs on this branch, matched exactly. Omitted covers every branch. A branch with no runs in range is an empty result, not an error. Longer than 255 characters is a 400. */
+                branch?: components["parameters"]["BranchFilter"];
                 /** @description Trailing span of time the failure insights cover: `24h`, `7d` or `30d`. Unlike `Window`, this is never a run count -- a quiet and a busy pipeline would cover very different spans. Anything else falls back to `7d`. */
                 window?: components["parameters"]["InsightsWindow"];
             };
@@ -1540,6 +1946,7 @@ export interface operations {
                     "application/json": components["schemas"]["FailureInsights"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
         };
     };
@@ -1550,6 +1957,8 @@ export interface operations {
                 repoId?: components["parameters"]["PipelineRepoIdFilter"];
                 /** @description Restrict the list to one forge. Omitted returns every forge. */
                 forge?: components["parameters"]["RepoForgeFilter"];
+                /** @description Cover only runs on this branch, matched exactly. Omitted covers every branch. A branch with no runs in range is an empty result, not an error. Longer than 255 characters is a 400. */
+                branch?: components["parameters"]["BranchFilter"];
                 /** @description Restrict runs to one status bucket. `failed` is a concluded failure, `running` is queued or in progress, `success` is a concluded success. Omitted or `all` returns every run. */
                 status?: components["parameters"]["RunStatusFilter"];
                 /** @description Max items to return. Omitted returns every matching item, unpaginated. */
@@ -1621,6 +2030,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     webauthnRegisterOptions: {
@@ -1684,6 +2094,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     webauthnLoginOptions: {
@@ -1746,6 +2157,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     webauthnLogout: {
@@ -1878,6 +2290,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     revokeCredential: {
@@ -1946,6 +2359,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
     forgejoWebhook: {
@@ -1981,6 +2395,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            413: components["responses"]["PayloadTooLarge"];
         };
     };
 }
