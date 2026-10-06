@@ -7,7 +7,7 @@
   `bun.lock` to a new `lockfileVersion: 2` format that Dependabot's and
   Renovate's bundled Bun (1.3.x as of this writing) can't parse and
   silently corrupts back to v1 -- staying below 1.4 here keeps the
-  dependency bot actually working (`rules/javascript.md`).
+  dependency bot actually working.
 - [lefthook](https://github.com/evilmartians/lefthook). `bun install` then
   `lefthook install` once, after cloning.
 
