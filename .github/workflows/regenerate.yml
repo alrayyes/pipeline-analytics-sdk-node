@@ -64,7 +64,9 @@ jobs:
               echo "BREAKING CHANGE: pipeline-analytics' spec removed or"
               echo "narrowed something a client may depend on:"
               echo
-              cat /tmp/oasdiff-breaking.txt
+              # Wrapped: commitlint's footer-max-line-length is 100, and
+              # oasdiff's lines are longer.
+              fold -s -w 90 /tmp/oasdiff-breaking.txt
             elif [ -n "$diff_json" ]; then
               echo "feat(spec): regenerate types from pipeline-analytics openapi.yaml"
             else
