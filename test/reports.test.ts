@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -78,16 +78,20 @@ describe("coverageHtml", () => {
 describe("buildReports", () => {
   test("lays out the published reports tree", () => {
     const dir = mkdtempSync(join(tmpdir(), "reports-"));
+    const lcovPath = join(dir, "in.lcov");
+    const junitPath = join(dir, "junit.xml");
+    writeFileSync(lcovPath, LCOV);
+    writeFileSync(junitPath, "<testsuites/>");
     buildReports({
-      lcovPath: "coverage/lcov.info",
-      junitPaths: ["junit.xml"],
+      lcovPath,
+      junitPaths: [junitPath],
       outDir: dir,
     });
     const read = (p: string) => readFileSync(join(dir, p), "utf8");
     expect(read("coverage/coverage.xml")).toContain("<coverage ");
-    expect(read("coverage/lcov.info")).toContain("SF:src/");
+    expect(read("coverage/lcov.info")).toContain("SF:src/a.ts");
     expect(read("coverage/index.html")).toContain("<table>");
-    expect(read("tests/junit.xml")).toContain("<testsuites");
+    expect(read("tests/junit.xml")).toContain("<testsuites/>");
     expect(read("tests/index.html")).toContain('href="junit.xml"');
     expect(read("index.html")).toContain('href="coverage/"');
     expect(read("index.html")).toContain('href="tests/"');
