@@ -44,9 +44,9 @@ bun run generate
 ```
 
 Diff `openapi/openapi.yaml` (not the generated types) to decide whether a
-change needs a major, minor or patch bump -- see
-[`rules/sdk-generation.md`](https://git.higherlearning.eu/alrayyes/dotfiles/src/branch/master/private_dot_config/claude/rules/sdk-generation.md)'s
-"Versioning tracks the contract, not the commits".
+change needs a major, minor or patch bump. The version follows the API
+contract, not the commit history: a breaking change to the spec is a major
+bump, a new endpoint or field is a minor one, and anything else is a patch.
 
 ## Why openapi-typescript + openapi-fetch
 
@@ -56,10 +56,9 @@ the generated TypeScript reads like every other language's client with the
 syntax swapped rather than like hand-written TS. `openapi-typescript`
 (types only, no runtime) plus `openapi-fetch` (a ~6&nbsp;KB typed wrapper
 around the platform `fetch`) produces a client that's genuinely idiomatic
-and has almost no dependency weight of its own -- see
-[`rules/sdk-generation.md`](https://git.higherlearning.eu/alrayyes/dotfiles/src/branch/master/private_dot_config/claude/rules/sdk-generation.md)'s
-"Generated vs hand-written" for the tradeoff this account weighs for every
-generated SDK.
+and has almost no dependency weight of its own. The tradeoff is the same
+for every generated SDK here: generate what the spec already says, so the
+types can't drift from it, and hand-write what it can't express.
 
 `src/generated/schema.ts` is the generated boundary -- types only. Every
 other file under `src/` (the client wrapper, auth, retry, pagination, error

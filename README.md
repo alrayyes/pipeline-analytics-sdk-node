@@ -54,8 +54,7 @@ npm install @alrayyes/pipeline-analytics-sdk-node
 pipeline-analytics authenticates browsers with
 [WebAuthn](https://webauthn.guide/), not an API token — there's no headless
 credential-grant flow in its spec
-([alrayyes/pipeline-analytics#178](https://github.com/alrayyes/pipeline-analytics/issues/178)
-tracks a real token flow), so this SDK can't log in for you. Get a session
+(a real token flow isn't built yet), so this SDK can't log in for you. Get a session
 cookie by logging into the dashboard in a browser, opening dev tools, and
 copying the `session` cookie's value. Pass it to
 `createPipelineAnalyticsClient` or set `PIPELINE_ANALYTICS_SESSION` in the
