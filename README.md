@@ -135,6 +135,19 @@ entirely with the `fetch` option.
 See [CONTRIBUTING.md](CONTRIBUTING.md) — the generated types are pinned to a
 specific pipeline-analytics commit and shouldn't drift from it silently.
 
+## Reports
+
+Every push to `main` that passes its tests publishes the reports to
+[apis.ryankes.eu](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/):
+
+- [Tests](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/tests/): JUnit XML
+- [Coverage](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/):
+  an HTML summary, [Cobertura XML](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/coverage.xml)
+  and lcov
+
+The contract tests need a Prism mock, so they run in CI only and aren't in
+the published JUnit.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for building, testing and the release
