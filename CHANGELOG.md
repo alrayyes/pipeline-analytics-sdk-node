@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v5.0.0...v5.0.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* bump the npm-minor-patch group with 3 updates ([#97](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/97)) ([d7bb0b1](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/d7bb0b120bd723cb63a3fb372e527d493b9edb20))
+
 ## [5.0.0](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v4.10.1...v5.0.0) (2026-10-06)
 
 
