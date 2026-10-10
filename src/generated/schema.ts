@@ -635,7 +635,7 @@ export interface paths {
         put?: never;
         /**
          * Issue a new API token
-         * @description Session-only -- an API token can't be used to issue another one. The raw token value is returned once, here, and is never recoverable afterward.
+         * @description Session-only -- an API token can't be used to issue another one. The raw token value is returned once, here, and is never recoverable afterward. The token lasts 90 days unless the body asks for another lifetime with `ttlSeconds`; anything over 365 days (the ceiling) is clamped to it, and `expiresAt` in the response is the expiry actually applied.
          */
         post: operations["issueApiToken"];
         delete?: never;
@@ -808,6 +808,10 @@ export interface components {
             pipelinesSortOrder?: "name" | "lastRun" | null;
             /** @enum {string|null} */
             telemetryWindow?: "24h" | "7d" | "30d" | null;
+        };
+        IssueApiTokenRequest: {
+            /** @description How long the token should last, in seconds. Omit it for the default of 90 days. A value above 365 days is clamped to 365 days; zero or less is rejected. */
+            ttlSeconds?: number;
         };
         ApiToken: {
             /** @description Identifies the token for revocation (DELETE /api/auth/tokens/{tokenId}) -- not itself a usable credential. */
@@ -2306,7 +2310,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueApiTokenRequest"];
+            };
+        };
         responses: {
             /** @description Token issued */
             201: {
@@ -2317,6 +2325,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiToken"];
                 };
             };
+            400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
         };
     };
