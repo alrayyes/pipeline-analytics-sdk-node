@@ -277,6 +277,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pipelines/{pipelineId}/steps/{step}/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark a flaky step as known, so it stops making its pipeline unhealthy
+         * @description Session-only: an API token or an MCP client can read a quarantine but not set one. A quarantined step stays in the flaky list with its figures unchanged, but no longer raises the pipeline's `flaky_step` health signal or counts in the flaky-step ratio. The mark lasts 30 days from now; marking a step that is already quarantined renews it and replaces its note. It is recorded in this service only: no forge is contacted. The step isn't checked to be flaky, so a mark on a step that isn't does nothing until it is.
+         */
+        put: operations["quarantineStep"];
+        post?: never;
+        /**
+         * Clear a step's quarantine
+         * @description Session-only. The step raises the `flaky_step` health signal again if it is still flaky. A step with no quarantine is fine: the answer is the same.
+         */
+        delete: operations["unquarantineStep"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/pipelines/{pipelineId}/flaky-runs": {
         parameters: {
             query?: never;
@@ -905,6 +929,9 @@ export interface components {
             /** @description Times this step failed within the window. */
             failureCount: number;
             flaky: boolean;
+            /** @description True when a person has marked this step as known. It is still `flaky`; it just stops making its pipeline unhealthy. */
+            quarantined: boolean;
+            quarantine?: components["schemas"]["Quarantine"];
             /**
              * Format: uri
              * @description Deep link to one occurrence's log on the originating forge -- not necessarily one where the step failed. GET .../flaky-runs is the reliable way to reach a run the step actually failed on.
@@ -1045,6 +1072,29 @@ export interface components {
                 pipelineName: string;
             }[];
         };
+        /** @description A person's mark on a flaky step. Present only while it is in force. */
+        Quarantine: {
+            /** @description Why the step is quarantined; empty when none was given. */
+            note: string;
+            /**
+             * Format: date-time
+             * @description When it was marked, or last renewed.
+             */
+            quarantinedAt: string;
+            /**
+             * Format: date-time
+             * @description Thirty days after `quarantinedAt`. After this the mark is as if never set.
+             */
+            expiresAt: string;
+        };
+        QuarantineRequest: {
+            /** @description Characters, not bytes. Optional. */
+            note?: string;
+        };
+        StepQuarantine: {
+            quarantined: boolean;
+            quarantine?: components["schemas"]["Quarantine"];
+        };
         FlakyStepEntry: {
             pipelineId: string;
             pipelineName: string;
@@ -1056,6 +1106,9 @@ export interface components {
             runCount: number;
             /** @description The step's result in its most recent runs, oldest first. */
             recentOutcomes: components["schemas"]["Outcome"][];
+            /** @description True when a person has marked this step as known. It is listed either way, with the same figures. */
+            quarantined: boolean;
+            quarantine?: components["schemas"]["Quarantine"];
         };
         FlakyStepList: {
             /**
@@ -1219,6 +1272,8 @@ export interface components {
     parameters: {
         RepoId: string;
         PipelineId: string;
+        /** @description The step's name, percent-encoded when it contains a `/`. */
+        StepNamePath: string;
         RunId: string;
         /** @description A step's name, exactly as GET .../steps reports it. */
         StepName: string;
@@ -1668,6 +1723,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Step"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    quarantineStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipelineId: components["parameters"]["PipelineId"];
+                /** @description The step's name, percent-encoded when it contains a `/`. */
+                step: components["parameters"]["StepNamePath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["QuarantineRequest"];
+            };
+        };
+        responses: {
+            /** @description The step is quarantined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepQuarantine"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            /** @description The note is longer than 500 characters */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    unquarantineStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pipelineId: components["parameters"]["PipelineId"];
+                /** @description The step's name, percent-encoded when it contains a `/`. */
+                step: components["parameters"]["StepNamePath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The step is not quarantined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepQuarantine"];
                 };
             };
             401: components["responses"]["Unauthorized"];
