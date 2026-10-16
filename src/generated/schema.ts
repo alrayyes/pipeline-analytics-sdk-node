@@ -196,7 +196,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * One tracked repository
+         * @description The same repository the list returns for this id, with its token masked, so a caller can name one repository without paging the list.
+         */
+        get: operations["getRepo"];
         put?: never;
         post?: never;
         /**
@@ -1591,6 +1595,30 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             413: components["responses"]["PayloadTooLarge"];
             502: components["responses"]["BadGateway"];
+        };
+    };
+    getRepo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repoId: components["parameters"]["RepoId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tracked repository */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Repo"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     untrackRepo: {
