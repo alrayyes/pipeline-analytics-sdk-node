@@ -28,6 +28,16 @@ bun run build
 `lefthook run pre-push` runs the same set (plus `sort-package-json --check`),
 so that's the one command to run before opening a pull request.
 
+Two jobs share the dependency audit, both through
+[advisory-scan](https://github.com/alrayyes/advisory-scan). The `audit` job
+runs on a pull request that changes `package.json` or `bun.lock`, audits the head and the base,
+and fails only on advisories the pull request adds. So an advisory published
+overnight doesn't turn unrelated pull requests red. `advisory-scan.yml`
+audits `main` daily, on every push that changes those files, and on demand,
+and keeps one open issue titled "Dependency advisories". It closes that issue
+when the audit is clean. There's no ignore list: an advisory with no fix
+stays in that issue until one ships.
+
 ## Regenerating the types
 
 `src/generated/schema.ts` is generated from `openapi/openapi.yaml` by
