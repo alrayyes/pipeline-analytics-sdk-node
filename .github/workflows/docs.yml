@@ -52,9 +52,13 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # Every push rebuilds and replaces the whole site, so only the newest
+    # deploy matters. cancel-in-progress also evicts a run whose job is stuck
+    # in `waiting` (it happened for 10 days, #120), which would otherwise hold
+    # the group and queue every later deploy behind it.
     concurrency:
       group: pages
-      cancel-in-progress: false
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
