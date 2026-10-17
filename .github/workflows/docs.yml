@@ -17,7 +17,9 @@ permissions:
   contents: read
 
 # One run per ref, newest wins. Without this, `build` jobs for two quick pushes
-# race and the older commit's deploy can land last (#122).
+# race and the older commit's deploy can land last (#122). Cancelling the whole
+# older run means its deploy job never starts. The `pages` group on `deploy`
+# below is separate: it only evicts a deploy stuck in `waiting` (#120).
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
