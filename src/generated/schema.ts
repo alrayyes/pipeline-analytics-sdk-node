@@ -1651,6 +1651,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
         };
     };
     getRepoUsage: {
@@ -1678,6 +1679,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
         };
     };
     listPipelines: {
@@ -1911,6 +1913,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["NotActionable"];
+            500: components["responses"]["InternalError"];
             501: components["responses"]["NotImplemented"];
             502: components["responses"]["BadGateway"];
         };
@@ -1937,6 +1940,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["NotActionable"];
+            500: components["responses"]["InternalError"];
             501: components["responses"]["NotImplemented"];
             502: components["responses"]["BadGateway"];
         };
@@ -1967,6 +1971,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
         };
     };
     getGitHubRateLimitInsights: {
