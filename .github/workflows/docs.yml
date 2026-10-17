@@ -16,6 +16,12 @@ on:
 permissions:
   contents: read
 
+# One run per ref, newest wins. Without this, `build` jobs for two quick pushes
+# race and the older commit's deploy can land last (#122).
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
