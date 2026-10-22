@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- [Bun](https://bun.sh) 1.3.14 — pinned via `packageManager` in
+- [Bun](https://bun.sh) 1.4.3 — pinned via `packageManager` in
   `package.json` and `oven-sh/setup-bun` in CI. Bun 1.4 switched
   `bun.lock` to a new `lockfileVersion: 2` format that Dependabot's and
   Renovate's bundled Bun (1.3.x as of this writing) can't parse and
