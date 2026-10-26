@@ -10,6 +10,9 @@
   dependency bot actually working.
 - [lefthook](https://github.com/evilmartians/lefthook). `bun install` then
   `lefthook install` once, after cloning.
+- [gitleaks](https://github.com/gitleaks/gitleaks) on your `PATH`. It scans
+  for committed secrets in the `pre-commit` and `pre-push` hooks and in CI
+  (`.github/workflows/gitleaks.yml`), over the whole history each time.
 
 Bun is the runtime here, not just the package manager -- there's no Docker
 wrapper the way this account's Go repos use one. A `go`/bun toolchain is
