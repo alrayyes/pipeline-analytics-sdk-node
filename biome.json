@@ -11,7 +11,9 @@
       "!dist",
       "!coverage",
       "!src/generated",
-      "!.release-please-manifest.json"
+      "!.release-please-manifest.json",
+      "!CHANGELOG.md",
+      "!.claude"
     ]
   },
   "formatter": {
