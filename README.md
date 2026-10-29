@@ -63,9 +63,12 @@ environment:
 ```ts
 import { createPipelineAnalyticsClient } from "@pipeline-analytics/sdk-node";
 
-const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com", {
-  sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
-});
+const client = createPipelineAnalyticsClient(
+  "https://pipeline-analytics.example.com",
+  {
+    sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
+  },
+);
 ```
 
 A session cookie expires the same way it would in a browser; there's nothing
@@ -82,7 +85,9 @@ operation is `client.GET(path, ...)` / `client.POST(path, ...)`, returning
 ```ts
 import { createPipelineAnalyticsClient } from "@pipeline-analytics/sdk-node";
 
-const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com");
+const client = createPipelineAnalyticsClient(
+  "https://pipeline-analytics.example.com",
+);
 
 const { data } = await client.GET("/api/version", {});
 console.log("server version:", data?.version);
@@ -92,11 +97,18 @@ Listing tracked repos needs a session, and demonstrates the pagination
 iterator and typed error handling:
 
 ```ts
-import { ApiError, createPipelineAnalyticsClient, listRepos } from "@pipeline-analytics/sdk-node";
+import {
+  ApiError,
+  createPipelineAnalyticsClient,
+  listRepos,
+} from "@pipeline-analytics/sdk-node";
 
-const client = createPipelineAnalyticsClient("https://pipeline-analytics.example.com", {
-  sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
-});
+const client = createPipelineAnalyticsClient(
+  "https://pipeline-analytics.example.com",
+  {
+    sessionCookie: process.env.PIPELINE_ANALYTICS_SESSION,
+  },
+);
 
 try {
   for await (const repo of listRepos(client)) {
@@ -117,9 +129,12 @@ Use `decodeError` to turn a failed response into a `@pipeline-analytics/sdk-node
 ```ts
 import { decodeError } from "@pipeline-analytics/sdk-node";
 
-const { data, error, response } = await client.GET("/api/repos/{repoId}/usage", {
-  params: { path: { repoId } },
-});
+const { data, error, response } = await client.GET(
+  "/api/repos/{repoId}/usage",
+  {
+    params: { path: { repoId } },
+  },
+);
 if (error) {
   throw decodeError(response, error);
 }
@@ -139,7 +154,6 @@ specific pipeline-analytics commit and shouldn't drift from it silently.
 
 Every push to `main` that passes its tests publishes the reports to
 [apis.ryankes.eu](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/):
-
 - [Tests](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/tests/): JUnit XML
 - [Coverage](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/):
   an HTML summary, [Cobertura XML](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/coverage.xml)
