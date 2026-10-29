@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.2](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v5.8.1...v5.8.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* keep generated markdown out of biome and format the README ([#136](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/136)) ([0d05cd2](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/0d05cd20f6d7735119222c9643c015cb32163e6f)), closes [#135](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/135)
+
 ## [5.8.1](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v5.8.0...v5.8.1) (2026-10-26)
 
 
