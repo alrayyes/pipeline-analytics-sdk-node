@@ -154,6 +154,7 @@ specific pipeline-analytics commit and shouldn't drift from it silently.
 
 Every push to `main` that passes its tests publishes the reports to
 [apis.ryankes.eu](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/):
+
 - [Tests](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/tests/): JUnit XML
 - [Coverage](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/):
   an HTML summary, [Cobertura XML](https://apis.ryankes.eu/pipeline-analytics-sdk-node/reports/coverage/coverage.xml)
