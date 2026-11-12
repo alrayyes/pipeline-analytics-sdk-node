@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.4](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v5.8.3...v5.8.4) (2026-11-12)
+
+
+### Bug Fixes
+
+* bump @biomejs/biome ([#139](https://github.com/alrayyes/pipeline-analytics-sdk-node/issues/139)) ([79626bf](https://github.com/alrayyes/pipeline-analytics-sdk-node/commit/79626bf8855fffc14210a2113355ede7857373ac))
+
 ## [5.8.3](https://github.com/alrayyes/pipeline-analytics-sdk-node/compare/v5.8.2...v5.8.3) (2026-11-12)
 
 
